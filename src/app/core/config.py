@@ -1,6 +1,5 @@
 """Configuration management with Pydantic Settings."""
 
-
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
