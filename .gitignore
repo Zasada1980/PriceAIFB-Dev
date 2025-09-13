@@ -130,3 +130,12 @@ logs/
 chromedriver*
 geckodriver*
 screenshots/
+
+# LLM/Ollama model cache and artifacts
+.ollama/
+ollama_models/
+*.gguf
+*.bin
+
+# Docker volumes
+docker-data/

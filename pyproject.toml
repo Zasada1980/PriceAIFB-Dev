@@ -59,4 +59,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short -m 'not ollama'"
+markers = [
+    "ollama: marks tests as requiring Ollama service (deselect with '-m \"not ollama\"')"
+]
