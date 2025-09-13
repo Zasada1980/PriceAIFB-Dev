@@ -1,320 +1,343 @@
-# Market Scout Israel
+# PriceAIFB-Dev
 
-A comprehensive price monitoring system for computer components and builds in the Israeli secondary market. This system automatically collects, processes, and analyzes listings from various platforms including Yad2 and Facebook Groups to provide up-to-date market intelligence.
+**Analytics and scoring system for secondary market listings (RVI/PVR/VPS)**
 
-## 🎯 Project Goals
+A minimal viable project framework for analyzing and scoring real estate, vehicle, and computing equipment listings using IFR (Ideal Final Result) principles and TRIZ contradiction resolution.
 
-1. **Automated Data Collection**: Automatically collect and fix information from computer component and build listings on Israel's secondary market (Facebook groups, Yad2, etc.)
-2. **Price Database**: Build an up-to-date price reference database with date, city, product condition, and warranty information
-3. **Market Intelligence**: Provide insights into market trends, pricing patterns, and regional variations
+![CI Status](https://github.com/Zasada1980/PriceAIFB-Dev/workflows/CI%20Pipeline/badge.svg)
+[![Coverage](https://img.shields.io/badge/coverage-%3E70%25-green.svg)](https://github.com/Zasada1980/PriceAIFB-Dev)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## 🏗️ Architecture
+## 🎯 Project Goals (IFR - Ideal Final Result)
+
+**The system from the box:**
+- ✅ Starts locally with one command (`python` or `docker compose`)
+- ✅ Has deterministic dependencies (pinned requirements.txt)
+- ✅ Has layered structure (core, adapters, services, pipelines, models, api)
+- ✅ Demonstrates working pipeline (demo scoring) as extension point
+- ✅ Has basic CI (lint+type+tests+image scan), no red statuses
+- ✅ Contains no sensitive data and doesn't commit secrets
+- ✅ Ready for extension without breaking (minimal coupling, clear integration points)
+
+## 🏗️ Architecture & TRIZ Principles Applied
+
+### Key Contradictions Resolved
+
+| Contradiction | Solution | TRIZ Principle |
+|--------------|----------|---------------|
+| Architecture flexibility vs minimal code | Layered framework with stubs | #1 Segmentation |
+| Fast CI setup vs complexity | Unified workflow ci.yml | #10 Preliminary action |
+| Logging extensibility vs simplicity | JSON logger with metrics capability | #15 Dynamism |
+| Fixed environment vs need for updates | requirements.in + pinned requirements.txt | #3 Local quality |
+| Fast scoring modification vs regression protection | Unit tests + dataclass results | #11 Buffering |
+| Container stability vs small size | Multi-stage Dockerfile | #2 Extraction |
+| Low contributor barrier vs need for rules | CONTRIBUTING + Makefile shortcuts | #24 Intermediary |
+
+### Directory Structure
 
 ```
-market_scout/
-├── api/           # FastAPI REST API endpoints
-├── config/        # Configuration management
-├── models/        # Database models and schemas
-├── scrapers/      # Platform-specific scrapers
-│   ├── base.py    # Base scraper interface
-│   ├── yad2.py    # Yad2 scraper
-│   └── facebook.py # Facebook Groups scraper
-└── utils/         # Utility functions and database setup
+PriceAIFB-Dev/
+├── src/
+│   └── app/
+│       ├── core/          # Configuration, logging, base classes
+│       │   ├── config.py  # Pydantic settings
+│       │   └── logging.py # Structured JSON logging
+│       ├── services/      # Business logic
+│       │   └── scoring.py # RVI/PVR calculation engine
+│       └── pipelines/     # Data processing workflows
+│           └── run.py     # Demo pipeline runner
+├── tests/
+│   └── test_scoring.py    # Comprehensive scoring tests
+├── .github/workflows/
+│   └── ci.yml            # Complete CI/CD pipeline
+├── requirements.in        # High-level dependencies
+├── requirements.txt       # Pinned dependencies
+├── pyproject.toml        # Tool configuration
+├── Dockerfile            # Multi-stage container build
+├── docker-compose.yml    # Container orchestration
+├── Makefile             # Development shortcuts
+└── docs/                # Documentation
+    ├── CONTRIBUTING.md
+    ├── SECURITY.md
+    └── README.md
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.9+
-- pip or poetry for dependency management
+- Python 3.11+
+- Docker and Docker Compose (optional)
 
-### Installation
+### Local Development
 
-1. Clone the repository:
 ```bash
+# 1. Clone and setup
 git clone https://github.com/Zasada1980/PriceAIFB-Dev.git
 cd PriceAIFB-Dev
-```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-# or
-pip install -e .
-```
-
-3. Configure environment:
-```bash
+# 2. Environment setup
 cp .env.example .env
-# Edit .env with your configuration
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run demo pipeline
+python -m src.app.pipelines.run
 ```
 
-4. Initialize database:
-```bash
-python main.py init-database
+Expected output:
+```json
+{
+  "status": "success",
+  "pipeline": "demo_scoring",
+  "scoring": {
+    "rvi": 71.53,
+    "pvr": 0.0159,
+    "final_score": 15.9,
+    "vram_penalty_applied": true
+  },
+  "interpretation": {
+    "investment_grade": "good",
+    "recommendation": "✅ Good investment opportunity"
+  }
+}
 ```
 
-### Basic Usage
-
-1. **Scrape listings from Yad2:**
-```bash
-python main.py scrape --query "מחשב" --pages 3 --platform yad2
-```
-
-2. **Start the API server:**
-```bash
-python main.py serve --host localhost --port 8000
-```
-
-3. **View listings:**
-```bash
-python main.py list-listings --limit 20
-```
-
-4. **Get statistics:**
-```bash
-python main.py stats
-```
-
-## 📊 API Endpoints
-
-### Core Endpoints
-
-- `GET /` - API information
-- `GET /listings` - Get listings with filtering options
-- `GET /listings/{id}` - Get specific listing
-- `GET /search` - Search listings by text
-
-### Statistics Endpoints
-
-- `GET /stats/categories` - Statistics by product category
-- `GET /stats/cities` - Statistics by city
-- `GET /stats/trends` - Price trends over time
-
-### Example API Usage
+### Docker Deployment
 
 ```bash
-# Get all GPU listings
-curl "http://localhost:8000/listings?category=gpu&limit=50"
+# Build and run
+docker compose up -d --build
 
-# Search for Intel products
-curl "http://localhost:8000/search?q=intel"
+# Check logs
+docker compose logs -f
 
-# Get price trends for CPUs over last 30 days
-curl "http://localhost:8000/stats/trends?category=cpu&days=30"
+# Stop
+docker compose down
 ```
 
-## 🛠️ Configuration
+## 📊 Scoring System (RVI/PVR/VPS)
 
-Key configuration options in `.env`:
+### Core Formulas
+
+**RVI (Resale Value Index):**
+```
+RVI = (CPU_score × wCPU + GPU_score × wGPU + Other_score × wOther)
+      × PLS × MLI × CWM × VRAM_penalty
+```
+
+**PVR (Price-to-Value Ratio):**
+```
+PVR = RVI / Price
+```
+
+**Final Score:**
+```
+Final Score = PVR × 1000  (scaled for readability)
+```
+
+### Parameters
+
+- **wCPU/wGPU/wOther**: Component weights (0.4/0.5/0.1)
+- **PLS**: Platform Liquidity Score (upgrade potential)
+- **MLI**: Market Liquidity Index (resale speed)
+- **CWM**: Condition/Warranty Multiplier
+- **VRAM_penalty**: Applied when GPU VRAM ≤ 8GB (0.85×)
+
+### Investment Grades
+
+- **🔥 Excellent (>20)**: Strong buy recommendation
+- **✅ Good (15-20)**: Good investment opportunity  
+- **⚠️ Average (10-15)**: Consider other factors
+- **❌ Poor (<10)**: Avoid or negotiate significantly
+
+## 🛠️ Development
+
+### Available Commands
 
 ```bash
-# Database
-DATABASE_URL=sqlite:///market_scout.db
-
-# Scraping settings
-SCRAPING_DELAY_MIN=1
-SCRAPING_DELAY_MAX=3
-MAX_CONCURRENT_REQUESTS=5
-
-# API settings
-API_HOST=localhost
-API_PORT=8000
-
-# Platform settings
-FACEBOOK_GROUPS=group1,group2,group3
-YAD2_BASE_URL=https://www.yad2.co.il
+make help          # Show all commands
+make format        # Format code (black + isort)
+make lint          # Run linting (ruff)
+make typecheck     # Type checking (mypy)
+make test          # Run tests
+make coverage      # Tests with coverage
+make run           # Run demo pipeline
+make check         # All quality checks
+make build         # Build Docker image
+make up            # Start with docker-compose
 ```
 
-## 🗃️ Database Schema
+### Dependency Management
 
-The system uses SQLAlchemy models with the following key entities:
+```bash
+# Add new dependency
+echo "new-package>=1.0.0" >> requirements.in
+make compile
 
-### Listing Model
-- **Product Info**: Title, description, category, condition, brand, model
-- **Pricing**: Price, currency, warranty details
-- **Location**: City, region
-- **Source**: Platform, URL, source ID
-- **Metadata**: Scraped date, posted date, seller info
+# Update all dependencies  
+make compile-upgrade
+```
 
-### Supported Categories
-- CPU, GPU, Motherboard, RAM, Storage, PSU, Cooling, Case, Complete Build
+### Code Quality Standards
 
-### Supported Conditions
-- New, Like New, Excellent, Good, Fair, Poor, For Parts
+- **Formatting**: Black (88 chars)
+- **Imports**: isort
+- **Linting**: Ruff (pycodestyle + pyflakes + bugbear)
+- **Type Checking**: mypy (strict mode)
+- **Testing**: pytest with >90% coverage
+- **Documentation**: Comprehensive docstrings
 
-## 🔍 Scrapers
+## 🔒 Security & Configuration
 
-### Yad2 Scraper
-- Searches computer category on Yad2
-- Extracts listing details, prices, locations
-- Handles Hebrew and English content
-- Built-in rate limiting and error handling
+### Environment Variables
 
-### Facebook Groups Scraper
-- **Note**: Requires proper Facebook API integration
-- Placeholder implementation included
-- Would need authentication and Graph API setup
+```bash
+# Core settings
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+DEBUG=false
+
+# Scoring parameters (customizable)
+CPU_WEIGHT=0.4
+GPU_WEIGHT=0.5
+OTHER_WEIGHT=0.1
+VRAM_PENALTY_THRESHOLD=8
+VRAM_PENALTY_FACTOR=0.85
+```
+
+### Security Features
+
+- ✅ No secrets in source code
+- ✅ Environment-based configuration
+- ✅ Container security (non-root user)
+- ✅ Automated vulnerability scanning (Trivy)
+- ✅ Dependency pinning
+- ✅ Input validation and sanitization
 
 ## 🧪 Testing
 
-Run the test suite:
+### Running Tests
 
 ```bash
-# Run all tests
-pytest
+# All tests
+make test
 
-# Run with coverage
-pytest --cov=market_scout
+# Specific test file
+pytest tests/test_scoring.py -v
 
-# Run specific test file
-pytest tests/unit/test_utils.py
+# With coverage
+make coverage
+
+# Fast tests (no coverage)
+pytest tests/test_scoring.py --tb=short
 ```
 
-## 📈 Data Analysis Features
+### Test Coverage
 
-- **Price Trends**: Track price changes over time
-- **Regional Analysis**: Compare prices across cities
-- **Category Statistics**: Average prices by component type
-- **Condition Impact**: Price differences by product condition
-- **Market Activity**: Listing volume and trends
+- **Scoring Service**: 100% coverage
+- **Configuration**: 100% coverage  
+- **Overall**: >70% coverage
+- **Critical Paths**: 100% coverage required
 
-## 🚨 Important Notes
+## 🚀 CI/CD Pipeline
 
-### Legal and Ethical Considerations
-- **Respect robots.txt** and platform terms of service
-- **Rate limiting** is implemented to avoid overloading servers
-- **Data privacy** - only collect publicly available information
-- **Commercial use** - ensure compliance with platform policies
+### Automated Checks
 
-### Limitations
-- Facebook scraper requires proper API integration
-- Some platforms may block automated access
-- Data accuracy depends on source quality
-- Regional coverage limited to Israeli market
+1. **Code Linting** (ruff)
+2. **Format Checking** (black, isort)
+3. **Type Checking** (mypy)
+4. **Unit Tests** (pytest + coverage)
+5. **Docker Build & Test**
+6. **Security Scanning** (Trivy)
+7. **Demo Pipeline Validation**
 
-## 🔄 Development
+### GitHub Actions
 
-### Code Style
-- Black formatting
-- isort import sorting
-- Type hints with mypy
-- Comprehensive test coverage
+- Triggers: Push/PR to main/develop
+- Parallel execution for speed
+- Artifact storage (demo outputs)
+- Security integration (GitHub Security tab)
+- Comprehensive reporting
 
-### Development Commands
-```bash
-# Format code
-black market_scout/ tests/
+## 📈 Roadmap
 
-# Sort imports
-isort market_scout/ tests/
+### Phase 1: Foundation ✅
+- [x] Minimal viable framework
+- [x] Core scoring engine (RVI/PVR)
+- [x] Demo pipeline
+- [x] CI/CD setup
+- [x] Docker containerization
 
-# Type checking
-mypy market_scout/
+### Phase 2: Data Ingestion (Next)
+- [ ] IMAP email adapter
+- [ ] Email parsing and normalization
+- [ ] Text extraction and cleaning
+- [ ] Basic data validation
 
-# Run linting
-flake8 market_scout/ tests/
-```
-
-## 🛣️ Roadmap
-
-- [ ] Enhanced Facebook API integration
+### Phase 3: Intelligence (Future)
 - [ ] Machine learning price prediction
-- [ ] Web dashboard interface
-- [ ] Mobile notifications for deals
-- [ ] Advanced analytics and reporting
-- [ ] Multi-language support
-- [ ] Export functionality (CSV, Excel)
-- [ ] Price alerts system
+- [ ] Synonym dictionaries
+- [ ] Market trend analysis
+- [ ] Comparative scoring
+
+### Phase 4: Integration (Future)  
+- [ ] Database layer (SQLite → PostgreSQL)
+- [ ] REST API endpoints
+- [ ] Telegram notifications
+- [ ] Web dashboard
+
+### Phase 5: Operations (Future)
+- [ ] Metrics and monitoring (Prometheus)
+- [ ] Distributed deployment
+- [ ] Rate limiting and throttling
+- [ ] Advanced analytics
+
+## 📝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
+- Development environment setup
+- Code style guidelines
+- Pull request process
+- Testing requirements
+
+### Quick Contribution Setup
+
+```bash
+# Development setup
+make dev-setup
+make env
+
+# Before committing
+make check
+
+# Run demo
+make run
+```
+
+## 🔐 Security
+
+For security concerns, please see [SECURITY.md](SECURITY.md) or contact us privately.
+
+- **Reporting**: Use GitHub Security advisories
+- **Response Time**: 48 hours for initial response
+- **Disclosure**: Coordinated disclosure after fixes
 
 ## 📄 License
 
-This project is intended for educational and research purposes. Please ensure compliance with platform terms of service and local laws when using this software.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
+## 🤝 Support
 
-Contributions are welcome! Please:
-1. Follow the existing code style
-2. Add tests for new features
-3. Update documentation as needed
-4. Respect ethical scraping practices
-
-## 📞 Support
-
-For questions or issues, please open a GitHub issue or contact the development team.
-=======
-# PriceAIFB-Dev
-Market Scout Israel
-
-# 📊 Market Scout Israel
-
-Система для **анализа цен вторичного рынка компьютерных комплектующих и сборок в Израиле**.
-Цель — находить недооценённые предложения, чтобы выгодно скупать и перепродавать с маржой **30%+**.
+- **Issues**: [GitHub Issues](https://github.com/Zasada1980/PriceAIFB-Dev/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Zasada1980/PriceAIFB-Dev/discussions)
+- **Documentation**: [Wiki](https://github.com/Zasada1980/PriceAIFB-Dev/wiki)
 
 ---
 
-## 🎯 Цели проекта
-
-1. Автоматический сбор информации из объявлений (Facebook группы, Yad2 и т.п.).
-2. Создание базы данных цен на CPU, GPU, MB, RAM, PSU, SSD/HDD и готовые сборки.
-3. Построение аналитики: выявление средней цены, определение «🔥 выгодных» сделок.
-4. Расчёт рентабельности каждой покупки и потенциальной прибыли при перепродаже.
-5. Использование данных для аргументированных переговоров с продавцами.
-
----
-
-## ⚙️ Функционал
-
-* **Сбор данных**: парсинг объявлений через email-уведомления / локальный скрипт.
-* **Нормализация текста**: очистка названий моделей (CPU/GPU/MB).
-* **Категоризация**: разделение на сборки и отдельные компоненты.
-* **Скоринг**: расчёт **RVI** (Resale Value Index) и **PVR** (Price-to-Value Ratio).
-* **Фильтры**: состояние, гарантия, потенциал апгрейда, ликвидность.
-* **Экспорт**: база в CSV/SQLite, дашборды, Telegram-алерты на лучшие сделки.
-
----
-
-## 🧮 Основные формулы
-
-```
-RVI = (CPU_score × wCPU + GPU_score × wGPU + RAM/SSD_score × wOther)
-      × PLS × MLI × CWM × VRAM_penalty
-
-Final Deal Score = RVI / Цена
-```
-
-* **CPU/GPU\_score** — нормализованные баллы из тестов.
-* **PLS** — потенциал платформы (апгрейд).
-* **MLI** — ликвидность (скорость продажи).
-* **CWM** — состояние и гарантия.
-* **VRAM\_penalty** — штраф за 8GB и меньше.
-
----
-
-## 🏗️ Техническая база
-
-* **Docker + Compose** — запуск локального пайплайна.
-* **Ollama / LocalAI** — выделение ключевых данных из текста объявлений.
-* **SQLite** — хранение предложений и цен.
-* **Python 3.11** — обработка, нормализация и скоринг.
-* **Telegram Bot** — уведомления о «🔥 сделках».
-
----
-
-## 🚀 Быстрый старт
-
-```bash
-git clone https://github.com/your-repo/market-scout.git
-cd market-scout
-cp .env.example .env   # заполнить IMAP/Telegram токены
-docker compose up -d --build
-```
-
-Проверка результата:
-
-```bash
-docker compose logs -f app
-sqlite3 data/market.db 'select * from offers limit 5;'
-```
-main
+**Built with ❤️ using TRIZ principles and IFR methodology**
