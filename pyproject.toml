@@ -110,8 +110,11 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --cov=src --cov-report=term-missing --cov-report=html"
+addopts = "-v --tb=short --cov=src --cov-report=term-missing --cov-report=html -m 'not ollama'"
 asyncio_mode = "auto"
+markers = [
+    "ollama: marks tests as requiring Ollama service (deselect with '-m \"not ollama\"')"
+]
 
 # Coverage configuration
 [tool.coverage.run]

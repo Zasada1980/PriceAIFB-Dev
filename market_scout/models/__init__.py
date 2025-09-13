@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Optional
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Enum as SQLEnum
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 from pydantic import BaseModel
 
 
@@ -14,6 +13,7 @@ Base = declarative_base()
 
 class ProductCondition(str, Enum):
     """Product condition enumeration."""
+
     NEW = "new"
     LIKE_NEW = "like_new"
     EXCELLENT = "excellent"
@@ -25,6 +25,7 @@ class ProductCondition(str, Enum):
 
 class ProductCategory(str, Enum):
     """Product category enumeration."""
+
     CPU = "cpu"
     GPU = "gpu"
     MOTHERBOARD = "motherboard"
@@ -39,6 +40,7 @@ class ProductCategory(str, Enum):
 
 class Listing(Base):
     """Database model for product listings."""
+
     __tablename__ = "listings"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -46,36 +48,36 @@ class Listing(Base):
     description = Column(Text)
     price = Column(Float, nullable=False, index=True)
     currency = Column(String(3), default="ILS")
-    
+
     # Product information
     category = Column(SQLEnum(ProductCategory), nullable=False, index=True)
     condition = Column(SQLEnum(ProductCondition), nullable=False, index=True)
     brand = Column(String(100), index=True)
     model = Column(String(200), index=True)
-    
+
     # Location information
     city = Column(String(100), index=True)
     region = Column(String(100), index=True)
-    
+
     # Seller information
     seller_name = Column(String(200))
     seller_contact = Column(String(200))
-    
+
     # Source information
     source_platform = Column(String(50), nullable=False, index=True)
     source_url = Column(String(1000))
     source_id = Column(String(200), index=True)
-    
+
     # Warranty and additional info
     warranty_months = Column(Integer)
     has_original_box = Column(String(10))  # yes/no/unknown
     has_receipt = Column(String(10))  # yes/no/unknown
-    
+
     # Timestamps
     posted_date = Column(DateTime)
     scraped_date = Column(DateTime, default=datetime.utcnow, index=True)
     updated_date = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Status
     is_active = Column(String(10), default="yes", index=True)  # yes/no/unknown
 
@@ -83,6 +85,7 @@ class Listing(Base):
 # Pydantic models for API
 class ListingBase(BaseModel):
     """Base Pydantic model for listings."""
+
     title: str
     description: Optional[str] = None
     price: float
@@ -105,11 +108,13 @@ class ListingBase(BaseModel):
 
 class ListingCreate(ListingBase):
     """Pydantic model for creating listings."""
+
     pass
 
 
 class ListingResponse(ListingBase):
     """Pydantic model for listing responses."""
+
     id: int
     scraped_date: datetime
     updated_date: datetime

@@ -1,5 +1,5 @@
 # Makefile for PriceAIFB-Dev development
-.PHONY: help install install-dev clean lint format typecheck test coverage run build up logs compile docs
+.PHONY: help install install-dev clean lint format typecheck test coverage run build up logs compile docs ollama-up ollama-down ollama-pull
 
 # Default Python interpreter
 PYTHON := python
@@ -38,14 +38,17 @@ format-check: ## Check code formatting without making changes
 typecheck: ## Run type checking with mypy
 	mypy src/
 
-test: ## Run tests with pytest
+test: ## Run tests with pytest (excluding ollama tests)
+	pytest tests/ -v -m "not ollama"
+
+test-all: ## Run all tests including ollama integration tests
 	pytest tests/ -v
 
 coverage: ## Run tests with coverage report
-	pytest tests/ --cov=src --cov-report=term-missing --cov-report=html
+	pytest tests/ --cov=src --cov-report=term-missing --cov-report=html -m "not ollama"
 
 test-fast: ## Run tests without coverage (faster)
-	pytest tests/ -v --tb=short
+	pytest tests/ -v --tb=short -m "not ollama"
 
 run: ## Run the demo pipeline locally
 	$(PYTHON) -m src.app.pipelines.run
@@ -71,6 +74,30 @@ down: ## Stop services
 
 logs: ## Show container logs
 	$(DOCKER_COMPOSE) logs -f
+
+# LLM/Ollama commands (optional)
+ollama-up: ## Start Ollama service
+	$(DOCKER_COMPOSE) up -d ollama
+	@echo "Waiting for Ollama service to be ready..."
+	@timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags >/dev/null 2>&1; do sleep 2; done' || echo "Timeout waiting for Ollama"
+	@echo "Ollama service is ready!"
+
+ollama-down: ## Stop Ollama service
+	$(DOCKER_COMPOSE) down ollama
+
+ollama-pull: ## Pull an Ollama model (usage: make ollama-pull MODEL=llama3)
+	@if [ -z "$(MODEL)" ]; then \
+		echo "Usage: make ollama-pull MODEL=<model_name>"; \
+		echo "Example: make ollama-pull MODEL=llama3"; \
+		exit 1; \
+	fi
+	$(DOCKER_COMPOSE) exec ollama ollama pull $(MODEL)
+
+ollama-models: ## List available Ollama models
+	$(DOCKER_COMPOSE) exec ollama ollama list
+
+ollama-logs: ## Show Ollama logs
+	$(DOCKER_COMPOSE) logs -f ollama
 
 # Development workflow
 dev-setup: install-dev ## Set up development environment

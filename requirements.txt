@@ -12,6 +12,8 @@ click==8.2.1
     # via black
 coverage[toml]==7.10.6
     # via pytest-cov
+httpx==0.28.1
+    # via -r requirements.in (added for FastAPI TestClient)
 iniconfig==2.1.0
     # via pytest
 isort==6.0.1

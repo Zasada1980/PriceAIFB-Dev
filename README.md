@@ -159,7 +159,6 @@ Final Score = PVR × 1000  (scaled for readability)
 
 ### Available Commands
 
-```bash
 make help          # Show all commands
 make format        # Format code (black + isort)
 make lint          # Run linting (ruff)
@@ -170,6 +169,11 @@ make run           # Run demo pipeline
 make check         # All quality checks
 make build         # Build Docker image
 make up            # Start with docker-compose
+
+# Ollama LLM commands (optional)
+make ollama-up     # Start Ollama service
+make ollama-pull   # Pull LLM model
+make ollama-down   # Stop Ollama service
 ```
 
 ### Dependency Management
@@ -182,6 +186,94 @@ make compile
 # Update all dependencies  
 make compile-upgrade
 ```
+
+## 🤖 LLM (Ollama) Integration (Optional)
+
+PriceAIFB-Dev includes optional LLM integration for enhanced text normalization using Ollama. This feature is **disabled by default** and requires manual setup.
+
+### Features
+- **Text Normalization**: Clean and standardize product listing descriptions
+- **Smart Categorization**: Improve product classification using AI
+- **Multi-language Support**: Handle Hebrew/English mixed content better
+- **Fallback Design**: Graceful degradation when LLM is unavailable
+
+### Quick Setup
+
+1. **Start Ollama Service**:
+```bash
+make ollama-up
+```
+
+2. **Pull a Model** (choose one):
+```bash
+make ollama-pull MODEL=llama3        # Recommended for general use
+make ollama-pull MODEL=llama3.1      # Latest version
+make ollama-pull MODEL=mistral       # Faster alternative
+```
+
+3. **Enable LLM** in your `.env`:
+```bash
+ENABLE_LLM=true
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=llama3
+OLLAMA_TIMEOUT_SECONDS=30
+```
+
+4. **Test Integration**:
+```bash
+# Run unit tests (always work)
+python -m pytest tests/test_llm_adapter_unit.py -v
+
+# Run integration tests (requires running Ollama)
+python -m pytest tests/test_llm_adapter_integration.py -v -m ollama
+```
+
+### Usage Example
+
+```python
+from market_scout.adapters.llm import llm_normalize_text, is_llm_enabled
+
+# Check if LLM is available
+if is_llm_enabled():
+    normalized = llm_normalize_text("מחשב נייד לנובו i7 16GB")
+    print(normalized)  # "Lenovo Laptop Intel i7 16GB RAM"
+else:
+    print("LLM disabled - using fallback normalization")
+```
+
+### Docker Commands
+
+```bash
+# Start only Ollama service
+docker compose up -d ollama
+
+# View Ollama logs  
+make ollama-logs
+
+# List downloaded models
+make ollama-models
+
+# Stop Ollama
+make ollama-down
+```
+
+### Risk Analysis & Mitigation
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| CI slowdown from models | High | Models not downloaded in CI; disabled by default |
+| Flaky tests from LLM variance | Medium | Unit tests use mocks; integration tests marked separately |
+| Service unavailability | Medium | Graceful fallback; health checks; optional feature |
+| Large model artifacts | Low | Models stored in Docker volumes; .gitignore configured |
+| Generation timeouts | Medium | Configurable timeouts; error handling; fallback to original |
+
+### Performance Notes
+
+- **Model Size**: Llama3 (~4.7GB), Mistral (~4.1GB)
+- **First Request**: Slower due to model loading (~10-30s)
+- **Subsequent Requests**: Fast (~1-3s)
+- **Memory Usage**: ~8GB RAM recommended for llama3
+- **CPU vs GPU**: CPU inference is sufficient for text normalization
 
 ### Code Quality Standards
 
