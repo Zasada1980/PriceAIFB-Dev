@@ -7,10 +7,7 @@ from market_scout.models import Base
 
 
 # Create database engine
-engine = create_engine(
-    settings.database_url,
-    echo=settings.api_debug
-)
+engine = create_engine(settings.database_url, echo=settings.api_debug)
 
 # Create sessionmaker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
