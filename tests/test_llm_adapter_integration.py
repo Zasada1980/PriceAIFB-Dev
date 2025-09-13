@@ -4,13 +4,13 @@ import pytest
 import requests
 
 from market_scout.adapters.llm import (
-    is_llm_enabled,
-    llm_health_check,
-    llm_generate,
-    llm_normalize_text,
     LLMDisabledError,
     LLMRequestError,
     _ollama_settings,
+    is_llm_enabled,
+    llm_generate,
+    llm_health_check,
+    llm_normalize_text,
 )
 
 

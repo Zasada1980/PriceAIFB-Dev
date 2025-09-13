@@ -1,17 +1,18 @@
 """Unit tests for LLM adapter using mocked HTTP requests."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import patch, Mock
 import requests
 
 from market_scout.adapters.llm import (
-    is_llm_enabled,
-    llm_health_check,
-    llm_generate,
-    llm_normalize_text,
     LLMDisabledError,
     LLMRequestError,
     _ollama_settings,
+    is_llm_enabled,
+    llm_generate,
+    llm_health_check,
+    llm_normalize_text,
 )
 
 
