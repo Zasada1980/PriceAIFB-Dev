@@ -109,8 +109,8 @@ def llm_generate(prompt: str, system_prompt: Optional[str] = None) -> str:
         logger.error(f"Ollama request failed: {e}")
         raise LLMRequestError(f"Failed to generate text: {e}")
     except Exception as e:
-        logger.error(f"Unexpected error in LLM generation: {e}")
-        raise LLMRequestError(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error in LLM generation: {e}", exc_info=True)
+        raise
 
 
 def llm_normalize_text(text: str) -> str:
