@@ -10,13 +10,6 @@ from market_scout.utils.database import get_db, init_db
 from market_scout.config import settings
 
 
-app = FastAPI(
-    title="Market Scout Israel API",
-    description="Price monitoring system for computer components in Israeli secondary market",
-    version="0.1.0"
-)
-
-
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
@@ -25,7 +18,12 @@ async def lifespan(app: FastAPI):
     init_db()
     yield
 
-app.lifespan(lifespan)
+app = FastAPI(
+    title="Market Scout Israel API",
+    description="Price monitoring system for computer components in Israeli secondary market",
+    version="0.1.0",
+    lifespan=lifespan
+)
 @app.get("/")
 async def root():
     """API root endpoint."""
