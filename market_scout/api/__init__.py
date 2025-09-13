@@ -17,12 +17,15 @@ app = FastAPI(
 )
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on startup."""
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context for FastAPI app."""
     init_db()
+    yield
 
-
+app.lifespan(lifespan)
 @app.get("/")
 async def root():
     """API root endpoint."""
