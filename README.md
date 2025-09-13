@@ -1,4 +1,3 @@
-copilot/fix-30641388-a757-42e8-ab78-b7d32e6771fc
 # Market Scout Israel
 
 A comprehensive price monitoring system for computer components and builds in the Israeli secondary market. This system automatically collects, processes, and analyzes listings from various platforms including Yad2 and Facebook Groups to provide up-to-date market intelligence.
