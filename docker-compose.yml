@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: priceaifb-dev
+    environment:
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      - DEBUG=false
+    volumes:
+      # Mount .env file if it exists
+      - ./.env:/app/.env:ro
+      # Optional: mount data directory for future database
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - priceaifb-network
+    
+    # For future API service
+    # ports:
+    #   - "8000:8000"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import src.app.core.config; print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Future services can be added here:
+  # 
+  # database:
+  #   image: postgres:15-alpine
+  #   container_name: priceaifb-db
+  #   environment:
+  #     POSTGRES_DB: priceaifb
+  #     POSTGRES_USER: priceaifb
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-defaultpassword}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - priceaifb-network
+  #   
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: priceaifb-redis
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - priceaifb-network
+
+networks:
+  priceaifb-network:
+    driver: bridge
+
+volumes:
+  # For future database
+  # postgres_data:
+  # redis_data:
+  data:
+    driver: local
